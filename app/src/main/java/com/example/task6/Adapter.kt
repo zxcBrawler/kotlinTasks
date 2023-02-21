@@ -13,10 +13,15 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
-class Adapter (private val gamesName: ArrayList<String>,
-               private val gamesUrl: ArrayList<String>,
-               private val gamesDesc: ArrayList<String>,private var context: Context) :
+class Adapter (
+               private var context: Context) :
     RecyclerView.Adapter<Holder>() {
+
+    private  var games: MutableList<Games>? = null
+
+    fun setGamesList(games: MutableList<Games>) {
+        this.games = games
+    }
 
     class Holder(itemView : View): RecyclerView.ViewHolder(itemView) {
         val nameGame : TextView = itemView.findViewById(R.id.name_game)
@@ -30,16 +35,16 @@ class Adapter (private val gamesName: ArrayList<String>,
     }
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
-        holder.nameGame.text = gamesName[position]
-        holder.descriptionGame.text = gamesDesc[position]
+        holder.nameGame.text = games!![position].name
+        holder.descriptionGame.text = games!![position].description
         Glide.with(this.context)
-            .load(gamesUrl[position])
+            .load(games!![position].url)
             .into(holder.imageGame)
 
     }
 
     override fun getItemCount(): Int {
-       return gamesName.size
+       return games!!.size
     }
 
 

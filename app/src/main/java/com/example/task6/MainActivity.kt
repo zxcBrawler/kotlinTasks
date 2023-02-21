@@ -1,73 +1,54 @@
 package com.example.task6
 
+import android.content.Context
 import android.os.Bundle
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.NewInstanceFactory.Companion.instance
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import org.json.JSONArray
-import org.json.JSONObject
-import org.w3c.dom.Text
-import java.io.IOException
-import java.io.InputStream
-import java.lang.Exception
 
 class MainActivity : AppCompatActivity() {
 
 
-    private val gamesName : ArrayList<String> = arrayListOf()
-    private val gamesUrl : ArrayList<String> = arrayListOf()
-    private val gamesDesc: ArrayList<String> = arrayListOf()
+
+    private lateinit var adapter: Adapter
+    private lateinit var recyclerView :RecyclerView
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        instance = this
         setContentView(R.layout.activity_main)
         supportActionBar!!.hide()
-        val recyclerView : RecyclerView = findViewById(R.id.recyclerView)
+        recyclerView = findViewById(R.id.recyclerView)
+        adapter = Adapter(this)
+        initRecyclerView()
+        initViewModel()
+    }
+
+    private fun initRecyclerView(){
         recyclerView.layoutManager = LinearLayoutManager(this)
-        val adapter = Adapter(gamesName,gamesUrl,gamesDesc,this)
+        recyclerView.adapter = Adapter(this)
         recyclerView.adapter = adapter
         recyclerView.hasFixedSize()
-
-        addGames()
     }
 
-    private fun addGames(){
-        try {
-            val obj : JSONObject = JSONObject(loadJSON())
-
-            val gamesArray : JSONArray = obj.getJSONArray("games")
-            for (i in 0 until gamesArray.length()) {
-              val gamesDetail : JSONObject = gamesArray.getJSONObject(i)
-            gamesName.add(gamesDetail.getString("name"))
-            gamesDesc.add(gamesDetail.getString("description"))
-            gamesUrl.add(gamesDetail.getString("url"))
-
-
-            }
-        }
-        catch (e : IOException){
-            e.printStackTrace()
-        }
+    private fun initViewModel(){
+        val viewModel : ViewModel = ViewModelProvider(this)[ViewModel::class.java]
+        viewModel.getLiveDataObserver().observe(this, Observer {
+          adapter.setGamesList(it)
+            adapter.notifyDataSetChanged()
+        })
+        viewModel.addGames()
 
     }
 
-    private fun loadJSON() : String {
-        var json: String?
-        try {
-            val inputStream: InputStream = assets.open("data.json")
-            val size : Int = inputStream.available()
-            val buffer  = ByteArray(size)
-            inputStream.read(buffer)
-            inputStream.close()
-
-            json = String(buffer)
-
+    companion object {
+        private var instance: MainActivity? = null
+        fun getContext(): Context? {
+            return instance
         }
-        catch (e : IOException){
-                e.printStackTrace()
-            return null.toString()
-        }
-        return json
     }
 }

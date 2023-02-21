@@ -5,3 +5,4 @@ data class Games(
     var url : String,
     var description : String,
 )
+
